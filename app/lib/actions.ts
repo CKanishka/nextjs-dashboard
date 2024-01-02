@@ -61,10 +61,19 @@ export async function createInvoice(prevState: State, formData: FormData) {
   redirect("/dashboard/invoices");
 }
 
-export async function editInvoice(formData: FormData) {
+export async function editInvoice(prevState: State, formData: FormData) {
   const data = Object.fromEntries(formData.entries());
 
-  const { customerId, amount, status, id } = EditInvoice.parse(data);
+  const validatedFields = EditInvoice.safeParse(data);
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Invalid input",
+    };
+  }
+
+  const { customerId, amount, status, id } = validatedFields.data;
 
   const amountInCents = amount * 100;
   const date = new Date().toISOString().split("T")[0];
